@@ -1,0 +1,12 @@
+target/
+.mvn/wrapper/maven-wrapper.jar
+.idea/
+*.iml
+.project
+.settings/
+.classpath
+.factorypath
+.vscode/
+*.log
+.attach_pid*
+dependency-reduced-pom.xml
