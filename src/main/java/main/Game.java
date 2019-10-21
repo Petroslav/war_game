@@ -1,136 +1,139 @@
 package main;
 
-import java.util.Random;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class Game {
 
 	public static void main(String[] args) {
-		Card[] deck = new Card[52]; // creating a deck
-		Card[] field = new Card[52]; // creating a field for the cards to be played in
-		fillDeck(deck); // filling the deck with cards to deal to the players;
-		shuffleDeck(deck); // shuffling the deck;
-		Player p1 = new Player("Strahil"); //creating players
+		List<Card> deck = createDeck();
+
+		Player p1 = new Player("Strahil");
 		Player p2 = new Player("Pesho");
-		Player winner = null;
-		
-		for (int i = 0; i < deck.length; i++) {  //dealing cards to the players
-			if(i%2 == 0) p2.addToHand(deck[i]);
-			else p1.addToHand(deck[i]);
-		}
+
+		dealCards(p1, p2, deck);
+
 		System.out.println("===" + p1.getName() + " VS " + p2.getName() + "===");
-		do{
-			// Visualizing the hands of the players
-			p1.printHand(); 
+
+		Player winner = playWar(p1, p2);
+		if(winner == null) System.out.println("It's a tie!");
+		else System.out.println("Winner: " + winner.getName());
+
+
+
+	}
+
+	private static Player playWar(Player p1, Player p2)
+	{
+		List<Card> pot = new ArrayList<>();
+
+		while(p1.isGameOver() && p2.isGameOver())
+		{
+			p1.printHand();
 			p2.printHand();
-			System.out.println(p1.getNextCard().getSuit() + " VS " + p2.getNextCard().getSuit());	// Showing the current match-up
-			//Adding the cards to the field
-			addToPot(field, p1.getNextCard());
-			addToPot(field, p2.getNextCard());
-			//Comparing the cards
-			if(p1.getPower() > p2.getPower()) p1.takeCards(field);
-			if(p2.getPower() > p1.getPower()) p2.takeCards(field);
-			if(p2.getPower() == p1.getPower()){
-				System.out.println("===WAR!===");
-				war(p1, p2, field);
+			Card p1Card = p1.getNextCard();
+			Card p2Card = p2.getNextCard();
+			pot.add(p1Card);
+			pot.add(p2Card);
+
+			if (p1Card.getPwr() == p2Card.getPwr()) {
+				war(p1, p2, pot, 1);
+				pot.clear();
+				continue;
 			}
-			//Removing the cards from play
-			p1.playCard();
-			p2.playCard();
-		}while(!(end(p1, p2)));
-		
-		if(p1.getWon().size() == p2.getWon().size()) System.out.println("It's a TIE?!");
-		else{
-			System.out.println((p1.getWon().size() > p2.getWon().size() ? p1.getName() : p2.getName()) + " wins the game!");
+
+			if (p1Card.getPwr() > p2Card.getPwr())
+			{
+				p1.takeWinnings(pot);
+			} else
+			{
+				p2.takeWinnings(pot);
+			}
 		}
-		
+
+		Player winner = null;
+
+		if(p1.getWon() > p2.getWon()) winner = p1;
+		if(p2.getWon() > p1.getWon()) winner = p2;
+
+		return winner;
 	}
 
-	private static void shuffleDeck(Card[] deck){
-		Random rnd = new Random();
-	       for (int i = deck.length - 1; i > 0; i--)
-	       {
-	          int index = rnd.nextInt(i + 1);
-	          Card temp = deck[index];
-	          deck[index] = deck[i];
-	          deck[i] = temp;
+	private static boolean war(Player p1, Player p2, List<Card> pot, int round)
+	{
 
-	       }
+		Card p1Card;
+		Card p2Card;
+		if (p1.isGameOver())
+		{
+			p1Card = p1.getNextCard();
+			p2Card = p2.getNextCard();
+			pot.add(p1Card);
+			pot.add(p2Card);
+		}
+		else
+		{
+			return false;
+		}
+
+		if (round >= 3)
+		{
+			if(p1Card.getPwr() == p2Card.getPwr())
+			{
+				war(p1, p2, pot, round+1);
+			}
+			else
+			{
+				return winWar(p1, p2, p1Card, p2Card, pot);
+			}
+		}
+		else
+		{
+			if(!war(p1, p2, pot, round+1))
+			{
+				if (p1Card.getPwr() == p2Card.getPwr()) return false;
+				else
+				{
+					return winWar(p1, p2, p1Card, p2Card, pot);
+				}
+			}
+		}
+
+		return true;
 	}
-	private static void fillDeck(Card[] deck){
-		String[] pwrs = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
+
+	private static boolean winWar(Player p1, Player p2, Card p1Card, Card p2Card, List<Card> pot)
+	{
+		Player winner = p1Card.getPwr() > p2Card.getPwr() ? p1 : p2;
+		winner.takeWinnings(pot);
+		pot.clear();
+		return true;
+	}
+
+	private static void dealCards(Player p1, Player p2, List<Card> deck)
+	{
+		p1.addToHand(deck.subList(0, 26));
+		p2.addToHand(deck.subList(26, 52));
+	}
+
+	private static List<Card> createDeck()
+	{
+		List<Card> deck = new ArrayList<>(52);
+		fillDeck(deck); // filling the deck with cards to deal to the players;
+		Collections.shuffle(deck);
+		return deck;
+	}
+
+	private static void fillDeck(List<Card> deck){
+		String[] powers = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
 		char[] suits = {'\u2660', '\u2665', '\u2666', '\u2663'};
-		int cnt = 0;
 		for (char suit : suits)
 		{
-			for (int j = 0; j < pwrs.length; j++)
+			for (int j = 0; j < powers.length; j++)
 			{
-				deck[cnt] = new Card(j, (pwrs[j] + suit));
-				cnt++;
-				if (cnt == deck.length) break;
+				deck.add(new Card(j, (powers[j] + suit)));
 			}
 		}
-	}
-	private static void addToPot(Card[] pot, Card c){
-		for (int i = 0; i < pot.length; i++) {
-			if(pot[i] == null){
-				pot[i] = c;
-				break;
-			}
-		}
-	}	
-	private static void war(Player p1, Player p2, Card[] field){
-		//Checking if there are any cards left to play
-		if(end(p1, p2)){
-			System.out.println("No more cards! War ends in a draw.");
-			return;
-		}
-		// adding cards to the field
-		addToPot(field, p1.getNextCard());
-		addToPot(field, p2.getNextCard());
-		//Deciding round winner in case of last card, this is done for each round
-		Player win = winner(p1, p2);
-		p1.playCard();
-		p2.playCard();
-		if(end(p1, p2)){
-			if(win == null) System.out.println("No more cards! War ends in a draw");
-			else win.takeCards(field);
-			return;
-		}
-		addToPot(field, p1.getNextCard());
-		addToPot(field, p2.getNextCard());
-		win = winner(p1,p2);
-		p1.playCard();
-		p2.playCard();
-		if(end(p1,p2)){
-			if(win != null)
-			{
-				win.takeCards(field);
-			}
-			return;
-		}
-		roundOfWar(p1, p2, field);
-	}
-	private static void roundOfWar(Player p1, Player p2, Card[] field){
-		//playing a simple round to decide the war, keep on playing until there is a difference in the card value or players run out of cards
-		addToPot(field, p1.getNextCard());
-		addToPot(field, p2.getNextCard());
-		if(p1.getPower() > p2.getPower()) p1.takeCards(field);
-		if(p2.getPower() > p1.getPower()) p2.takeCards(field);
-		if(p2.getPower() == p1.getPower()){
-			if(end(p1, p2)){
-				System.out.println("No more cards! War ends in a draw.");
-				return;
-			}else roundOfWar(p1, p2, field);
-		}
-		p1.playCard();
-		p2.playCard();
-	}
-	private static boolean end(Player p1, Player p2){
-		return p1.getNextCard() == null || p2.getNextCard() == null;
-	}	
-	private static Player winner(Player p1, Player p2){
-		if(p1.getPower() > p2.getPower()) return p1;
-		if(p1.getPower() < p2.getPower()) return p2;
-		else return null;
 	}
 }

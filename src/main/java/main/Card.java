@@ -14,8 +14,9 @@ class Card {
 		return pwr;
 	}
 
-	String getSuit() {
+	@Override
+	public String toString()
+	{
 		return suit;
 	}
-
 }
