@@ -31,7 +31,7 @@ class Player {
 
 	boolean isGameOver()
 	{
-		return hand.size() == 0;
+		return hand.size() != 0;
 	}
 
 	Card getNextCard(){
@@ -46,9 +46,5 @@ class Player {
 		return won.size();
 	}
 
-	int getHandSize() {
-		return hand.size();
-	}
-	
 	
 }

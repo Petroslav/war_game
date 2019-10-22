@@ -19,6 +19,8 @@ public class Game {
 		Player winner = playWar(p1, p2);
 		if(winner == null) System.out.println("It's a tie!");
 		else System.out.println("Winner: " + winner.getName());
+		p1.printHand();
+		p2.printHand();
 
 
 
