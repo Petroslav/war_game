@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Game {
+import static java.util.Collections.*;
+
+public class WarGame
+{
 
 	public static void main(String[] args) {
 		List<Card> deck = createDeck();
@@ -21,9 +24,6 @@ public class Game {
 		else System.out.println("Winner: " + winner.getName());
 		p1.printHand();
 		p2.printHand();
-
-
-
 	}
 
 	private static Player playWar(Player p1, Player p2)
@@ -39,16 +39,17 @@ public class Game {
 			pot.add(p1Card);
 			pot.add(p2Card);
 
-			if (p1Card.getPwr() == p2Card.getPwr()) {
+			if (p1Card.getPwr() == p2Card.getPwr())
+			{
 				war(p1, p2, pot, 1);
-				pot.clear();
 				continue;
 			}
 
 			if (p1Card.getPwr() > p2Card.getPwr())
 			{
 				p1.takeWinnings(pot);
-			} else
+			}
+			else
 			{
 				p2.takeWinnings(pot);
 			}
@@ -123,7 +124,7 @@ public class Game {
 	{
 		List<Card> deck = new ArrayList<>(52);
 		fillDeck(deck); // filling the deck with cards to deal to the players;
-		Collections.shuffle(deck);
+		shuffle(deck);
 		return deck;
 	}
 
@@ -137,5 +138,72 @@ public class Game {
 				deck.add(new Card(j, (powers[j] + suit)));
 			}
 		}
+	}
+
+	private static class Card {
+
+		private final int pwr;
+		private final String suit;
+
+		Card(int pwr, String suit){
+			this.pwr = pwr;
+			this.suit = suit;
+		}
+
+		int getPwr() {
+			return pwr;
+		}
+
+		@Override
+		public String toString()
+		{
+			return suit;
+		}
+	}
+
+	private static class Player {
+
+		private String name;
+		private final List<Card> hand;
+		private final List<Card> won;
+
+		String getName() {
+			return name;
+		}
+
+		Player (String name){
+			this.name = name;
+			this.hand = new ArrayList<>(26);
+			this.won = new ArrayList<>(52);
+		}
+
+		void addToHand(List<Card> cards){
+			hand.addAll(cards);
+		}
+
+		void takeWinnings(List<Card> pot)
+		{
+			won.addAll(pot);
+			pot.clear();
+		}
+
+		boolean isGameOver()
+		{
+			return hand.size() != 0;
+		}
+
+		Card getNextCard(){
+			return hand.remove(hand.size()-1);
+		}
+
+		void printHand(){
+			System.out.println(getName() + "'s hand: " + hand);
+		}
+
+		int getWon() {
+			return won.size();
+		}
+
+
 	}
 }
